@@ -1,0 +1,12 @@
+<project name="media4j" default="gluegen" basedir=".">
+	<path id="gluegen.classpath">
+		<pathelement location="lib/gluegen.jar" />
+		<pathelement location="lib/antlr-2.7.5.jar" />
+	</path>
+	<taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask" classpathref="gluegen.classpath" />
+	<gluegen src="ffmpeg/libavformat/avformat.h"
+		 config="gluegen.cfg"
+		 emitter="com.sun.gluegen.JavaEmitter">
+		<classpath refid="gluegen.classpath" />
+	</gluegen>	
+</project>
