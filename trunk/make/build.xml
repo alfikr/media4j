@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   - Ant build.xml for media4j
+   -->
+
+<project name="media4j" basedir="." default="java.generate">
+	<property name="gluegen.root" value="../../gluegen" />
+	<import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
+
+    <target name="load.user.properties">
+        <property file="${user.home}/gluegen.properties" />
+        <echo message="Loaded ${user.home}/gluegen.properties." />
+        <echo message="antlr.jar=${antlr.jar}" />
+        <fail message="antlr.jar was not specified in joal.properties or gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
+    </target>
+
+    <target name="base.init" depends="load.user.properties,gluegen.cpptasks.detect.os">
+        <property name="project.root" value=".." />
+    	<property name="make" value="." />
+    </target>
+
+	<target name="setup.java.home.dir.nonmacosx" depends="base.init" unless="isOSX">
+    	<property name="java.home.dir" value="${java.home}/.." />
+    </target>
+    
+    <target name="setup.java.home.dir.macosx" depends="base.init" if="isOSX">
+    	<property name="java.home.dir" 
+    	          value="/System/Library/Frameworks/JavaVM.framework/Home" />
+    </target>
+
+	<target name="setup.java.home.dir" 
+	        depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx" />
+
+	<target name="declare.common" 
+			depends="setup.java.home.dir,gluegen.cpptasks.detect.compiler">
+		<property name="gluegen.make.dir" 
+		          value="../../gluegen/make" />
+		<property name="gluegen.build.xml" 
+		          value="${gluegen.make.dir}/build.xml" />
+		<property name="gluegen.jar"
+				  value="../../gluegen/build/gluegen.jar" />
+		<property name="gluegen-rt.jar"
+				  value="../../gluegen/build.gluegen-rt.jar" />
+		<path id="gluegen.classpath">
+			<pathelement location="${gluegen.jar}" />
+			<pathelement location="${antlr.jar}" />
+		</path>
+		<property name="ffmpeg.includes"
+		          value="/usr/local/include/ffmpeg" />
+		<property name="config"
+		          value="${project.root}/make" />
+		<property name="avcodec.cfg"
+		          value="${config}/avcodec.cfg" />
+		<dirset id="ffmpeg.includes.dir" dir="${ffmpeg.includes}" />
+    </target>
+	
+	<target name="init" depends="declare.common">
+	</target>
+	
+	<target name="build.gluegen" depends="init">
+		<ant antfile="${gluegen.build.xml}" 
+		     dir="${gluegen.make.dir}" 
+		     target="all"
+		     inheritAll="false" />
+	</target>
+	
+	<target name="java.generate"
+			depends="build.gluegen">
+		<taskdef name="gluegen" 
+				 classname="com.sun.gluegen.ant.GlueGenTask"
+				 classpathref="gluegen.classpath" />
+		<gluegen src="${ffmpeg.includes}/avcodec.h"
+				 config="${avcodec.cfg}"
+				 includeRefid="ffmpeg.includes.dir"
+				 emitter="com.sun.gluegen.JavaEmitter">
+			<classpath refid="gluegen.classpath" />
+		</gluegen>
+	</target>
+</project>
