@@ -1,0 +1,1 @@
+A set of auto generated JNI wrappers and higher level API for the FFMPEG library to provide media facilities to Java applications.
